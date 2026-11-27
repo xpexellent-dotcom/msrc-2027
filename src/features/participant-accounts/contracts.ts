@@ -33,4 +33,7 @@ export interface ParticipantPageState {
   notice: ApprovedNotice | null;
   profile: ParticipantProfile | null;
   sessionState: "anonymous" | "verification_required" | "authenticated" | "unavailable";
+  formToken?: string;
 }
+
+export const participantAccountViewHeader = "x-msrc-participant-view";

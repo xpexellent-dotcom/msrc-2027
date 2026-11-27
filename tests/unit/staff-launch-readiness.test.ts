@@ -48,7 +48,7 @@ beforeEach(() => {
   backend = { rpc: vi.fn(async (name) => {
     if (name === "msrc_staff_status") return { enabled: true, emailDailyLimit: 40 };
     if (name === "msrc_staff_form_claim") return { state: "claimed" };
-    if (name === "msrc_session_context") return persisted();
+    if (name === "msrc_session_context" || name === "msrc_session_activity") return persisted();
     if (name === "msrc_staff_profile") return { schemaVersion: 1, actorId, name: "Synthetic Staff", roles, session: persisted() };
     return replies[name] ?? null;
   }), identity: vi.fn(async () => actorId), refresh: vi.fn(async () => native), logout: vi.fn(async () => true) } as unknown as StaffBackend;
@@ -65,8 +65,11 @@ describe("Super Admin launch readiness handler", () => {
     expect(await response.json()).toMatchObject({ state: "area-not-ready" }); expect(backend.logout).not.toHaveBeenCalled();
     expect(response.headers.get("set-cookie") ?? "").not.toContain("Max-Age=0");
   });
-  it("reads both exact-session RPCs and projects only configuration booleans, entered settings and aggregate counts", async () => {
-    const response = await handle(), body = await response.json();
+  it.each(["GET", "POST"] as const)("%s reads both exact-session RPCs and projects only configuration booleans, entered settings and aggregate counts", async (method) => {
+    const input = method === "GET" ? request() : new Request(origin + "/api/staff-portal", { method, headers: {
+      ...Object.fromEntries(request().headers), origin, "content-type": "application/json" },
+      body: JSON.stringify({ action: "activity", area: "launch-readiness", formToken: staffFormToken(config, origin, now) }) });
+    const response = await handle(input), body = await response.json();
     expect(response.status).toBe(200); expect(response.headers.get("cache-control")).toContain("no-store");
     expect(body).toMatchObject({ state: "authenticated", launchReadiness: { registrationEnabled: false, earlyAccessCount: 3, settings: null } });
     for (const rpc of ["msrc_staff_launch_readiness", "msrc_staff_registration_settings"]) expect(backend.rpc).toHaveBeenCalledWith(rpc, { edition_key: config.editionKey }, accessToken);

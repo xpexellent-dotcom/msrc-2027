@@ -18,23 +18,41 @@ const specialties = Array.from({ length: 6 }, (_, index) => ({ id: `synthetic-${
 async function fixture(
   page: Page,
   account = { name: "Synthetic Participant", email: "synthetic@example.invalid" },
-  { latinNameAvailable = true, professionalStatusesAvailable = false } = {},
+  { latinNameAvailable = true, professionalStatusesAvailable = false, profileReadGate, headerAccountGate, initialProfile }: {
+    latinNameAvailable?: boolean;
+    professionalStatusesAvailable?: boolean;
+    profileReadGate?: Promise<void>;
+    headerAccountGate?: Promise<void>;
+    initialProfile?: Partial<OptionalParticipantProfile>;
+  } = {},
 ) {
-  let profile: OptionalParticipantProfile = { ...EMPTY_PARTICIPANT_PROFILE };
+  let profile: OptionalParticipantProfile = { ...EMPTY_PARTICIPANT_PROFILE, ...initialProfile };
   let unavailable = false;
   let failure: "conflict" | "unavailable" | null = null;
-  let saves = 0;
+  let signedIn = true;
+  let saves = 0, accountReads = 0, profileReads = 0;
   let catalog = latinNameAvailable ? specialties : specialties.slice(0, 1);
   const ready = (): ParticipantProfileResponse => ({
     state: "ready", profile, specialties: catalog, formToken: "synthetic-profile-token", latinNameAvailable,
     ...(professionalStatusesAvailable ? { professionalStatusesAvailable } : {}),
   });
-  await page.route("**/api/participant-accounts", async (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({
-    state: "ready", formToken: "synthetic-account-token", profileEnabled: true,
-    profile: { ...account, accountState: "verified", createdAt: "2026-10-25T10:00:00Z" },
-  }) }));
+  await page.route("**/api/participant-accounts", async (route) => {
+    if (route.request().method() === "POST" && route.request().postDataJSON()?.action === "logout") {
+      signedIn = false;
+      return route.fulfill({ json: { state: "signed_out" } });
+    }
+    if (route.request().method() === "GET" && ++accountReads === 2 && headerAccountGate) await headerAccountGate;
+    return route.fulfill({ json: {
+      state: "ready", formToken: "synthetic-account-token", profileEnabled: true,
+      ...(signedIn ? { profile: { ...account, accountState: "verified", createdAt: "2026-10-25T10:00:00Z" } } : {}),
+    } });
+  });
   await page.route("**/api/participant-accounts/profile/avatar?*", async (route) => route.fulfill({ contentType: "image/png", body: png, headers: { "cache-control": "private, no-store" } }));
   await page.route("**/api/participant-accounts/profile", async (route) => {
+    if (route.request().method() === "GET") {
+      profileReads += 1;
+      if (profileReadGate) await profileReadGate;
+    }
     let result = ready();
     if (unavailable) result = { state: "area-not-ready" };
     else if (route.request().method() === "POST") {
@@ -60,7 +78,7 @@ async function fixture(
     }
     await route.fulfill({ contentType: "application/json", body: JSON.stringify(result) });
   });
-  return { fail: (state: "conflict" | "unavailable") => { failure = state; }, unavailable: () => { unavailable = true; }, saves: () => saves, advance: () => { profile = { ...profile, version: profile.version + 1 }; }, hideCatalog: () => { catalog = []; } };
+  return { fail: (state: "conflict" | "unavailable") => { failure = state; }, unavailable: () => { unavailable = true; }, saves: () => saves, profileReads: () => profileReads, advance: () => { profile = { ...profile, version: profile.version + 1 }; }, hideCatalog: () => { catalog = []; } };
 }
 
 async function chooseOther(page: Page, locale: "en" | "ar", institution: string) {
@@ -78,6 +96,118 @@ async function accessible(page: Page, scope = '[data-testid="participant-profile
 
 for (const locale of ["en", "ar"] as const) {
   const copy = profileCopy[locale];
+
+  test(`${locale} dashboard and header share one profile read`, async ({ page }) => {
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const avatarUrl = "/api/participant-accounts/profile/avatar?v=3";
+    const avatarFirst = locale === "en";
+    const mock = await fixture(page, undefined, {
+      ...(avatarFirst ? { headerAccountGate: gate } : { profileReadGate: gate }), initialProfile: { avatarUrl, version: 3 },
+    });
+    const header = page.getByTestId("header-primary-action");
+    const profile = page.getByTestId("participant-profile-card");
+    try {
+      await page.goto(`/${locale}/my-msrc`);
+      if (avatarFirst) await expect(profile.locator(".participant-profile-avatar img")).toHaveAttribute("src", avatarUrl);
+      else await expect(header).toHaveAttribute("data-signed-in", "true");
+      release();
+      await expect(header.locator("img")).toHaveAttribute("src", avatarUrl);
+      expect(mock.profileReads()).toBe(1);
+
+      await page.goto(`/${locale}/sign-in`);
+      await expect(header.locator("img")).toHaveAttribute("src", avatarUrl);
+      expect(mock.profileReads()).toBe(2);
+    } finally { release(); }
+  });
+
+  test(`${locale} Edit profile accepts intent while the protected profile read is pending`, async ({ page }) => {
+    let release!: () => void;
+    const profileReadGate = new Promise<void>((resolve) => { release = resolve; });
+    const name = "Synthetic Saved Name";
+    await fixture(page, undefined, { profileReadGate, initialProfile: { latinName: name, version: 3 } });
+    const loadingProfile = page.waitForRequest((request) =>
+      request.method() === "GET" && new URL(request.url()).pathname === "/api/participant-accounts/profile");
+    try {
+      await page.goto(`/${locale}/my-msrc`);
+      await loadingProfile;
+      const card = page.getByTestId("participant-profile-card");
+      const edit = card.getByRole("button", { name: copy.edit, exact: true });
+      await edit.click();
+      await expect(card.getByRole("status").filter({ hasText: copy.openingEditor })).toBeVisible();
+      await expect(edit).toHaveAttribute("aria-expanded", "false");
+      await expect(card.locator("form")).toHaveCount(0);
+      await edit.press("Enter");
+      await expect(card.locator("form")).toHaveCount(0);
+
+      release();
+      await expect(card.getByRole("heading", { level: 3, name: copy.edit, exact: true })).toBeFocused();
+      await expect(card.getByLabel(copy.latinName, { exact: true })).toHaveValue(name);
+      await expect(card.getByRole("button", { name: copy.cancelEditing, exact: true })).toHaveAttribute("aria-expanded", "true");
+    } finally { release(); }
+  });
+
+  test(`${locale} Sign out dispatches with profile and announcements pending at the same browser time`, async ({ page }) => {
+    await page.clock.setFixedTime(new Date("2026-11-27T07:00:00Z"));
+    let release!: () => void;
+    const backgroundGate = new Promise<void>((resolve) => { release = resolve; });
+    await fixture(page, undefined, { profileReadGate: backgroundGate });
+    await page.route("**/api/announcements?locale=*", async (route) => {
+      await backgroundGate;
+      await route.fulfill({ json: { state: "ready", announcements: [], formToken: "synthetic-inbox-token" } });
+    });
+    const profile = page.waitForRequest((request) => new URL(request.url()).pathname === "/api/participant-accounts/profile");
+    const inbox = page.waitForRequest((request) => new URL(request.url()).pathname === "/api/announcements");
+    try {
+      await page.goto(`/${locale}/my-msrc`);
+      await Promise.all([profile, inbox]);
+      const logout = page.waitForRequest((request) =>
+        request.method() === "POST" && new URL(request.url()).pathname === "/api/participant-accounts"
+        && request.postDataJSON()?.action === "logout");
+      await page.getByRole("button", { name: participantCopy[locale].signOut, exact: true }).click();
+      expect((await logout).postDataJSON()).toMatchObject({ action: "logout", formToken: "synthetic-account-token" });
+      await expect(page.getByTestId("participant-signin-required")).toBeVisible();
+      await expect(page.getByTestId("participant-profile-card")).toHaveCount(0);
+    } finally { release(); }
+  });
+
+  test(`${locale} Sign out cancels a previous account read and keeps the private profile cleared`, async ({ page }) => {
+    await fixture(page);
+    let holdNextRead = false;
+    let release!: () => void;
+    let finish!: () => void;
+    const heldRead = new Promise<void>((resolve) => { release = resolve; });
+    const settled = new Promise<void>((resolve) => { finish = resolve; });
+    await page.route("**/api/participant-accounts", async (route) => {
+      if (!holdNextRead || route.request().method() !== "GET") return route.fallback();
+      holdNextRead = false;
+      await heldRead;
+      try {
+        await route.fulfill({ json: { state: "ready", formToken: "stale-account-token",
+          profile: { name: "Stale Synthetic Participant", accountState: "verified", email: "stale@example.invalid" } } });
+      } catch { /* The aborted client request no longer has a response to fulfill. */ }
+      finally { finish(); }
+    });
+    try {
+      await page.goto(`/${locale}/my-msrc`);
+      const signOut = page.getByRole("button", { name: participantCopy[locale].signOut, exact: true });
+      await expect(signOut).toBeEnabled();
+      holdNextRead = true;
+      const refreshing = page.waitForRequest((request) =>
+        request.method() === "GET" && new URL(request.url()).pathname === "/api/participant-accounts");
+      await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true })));
+      const stale = await refreshing;
+      const aborted = page.waitForEvent("requestfailed", (request) => request === stale);
+      await signOut.click();
+      expect(await aborted).toBe(stale);
+      await expect(page.getByTestId("participant-signin-required")).toBeVisible();
+      release();
+      await settled;
+      await expect(page.getByTestId("participant-profile-card")).toHaveCount(0);
+      await expect(page.getByText("Stale Synthetic Participant")).toHaveCount(0);
+    } finally { release(); }
+  });
+
   test(`${locale} dashboard links reach private sections and honor each workflow flag`, async ({ page }, testInfo) => {
     const account = {
       name: locale === "ar" ? "دانا الحربي" : "Dana Alharbi",

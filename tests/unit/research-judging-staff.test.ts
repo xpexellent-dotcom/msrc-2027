@@ -14,11 +14,74 @@ const empty = () => ({ rubric: [], judgeCount: null, tieRule: null, categories: 
 const settings = () => ({ state: "ready", settings: empty(), version: 0, enabled: false, ready: false });
 const rubric = [{ id: "synthetic", label: "Synthetic criterion", min: 0, max: 7 }], scorecard = { scores: [{ criterionId: "synthetic", value: 0 }], comments: "Synthetic" };
 const assignment = () => ({ id: actorId, submissionId, title: "Synthetic work", version: 1, status: "assigned", categoryId: "synthetic", lockAt: "2027-01-01T00:00:00Z", rubric, packet: { title: "Synthetic work", body: "Synthetic body" }, scorecard });
+const entry = { id: submissionId, version: 1, reference: "SYNTHETIC", title: "Synthetic work", allocation: null,
+  categoryId: null, assignments: [], award: null };
 let roles: Role[], assurance: boolean, backend: StaffBackend, data: unknown;
 function persisted() { const superAdmin = roles.includes("superAdmin"); return { schemaVersion: 1, editionId: config.editionKey, principal: { userId: actorId, sessionId }, privileged: true, authenticationTier: superAdmin ? "super_admin" : "staff", sessionPolicySatisfied: assurance, reason: assurance ? null : superAdmin ? "mfa_required" : "staff_email_check_required", mfaValid: superAdmin && assurance, passwordValid: true, staffEmailValid: !superAdmin && assurance, emailVerified: true, timing: { startedAt: new Date(now).toISOString(), lastActivityAt: new Date(now).toISOString(), absoluteExpiresAt: new Date(session.deadline).toISOString(), idleExpiresAt: new Date(now + 30 * 60000).toISOString(), authenticatedAt: new Date(now).toISOString() }, policy: SESSION_POLICY, operationalAccessReady: false, privilegedAccessReady: false }; }
 function request(body?: Record<string, unknown>, query = "?view=settings", extra: Record<string, string> = {}) { return new Request(origin + "/api/staff-portal/research-event" + (body ? "" : query), { method: body ? "POST" : "GET", headers: { host: "127.0.0.1:3219", cookie: staffCookie(config, session, now).split(";")[0], ...(body ? { origin, "Content-Type": "application/json" } : {}), ...extra }, body: body ? JSON.stringify({ formToken: staffFormToken(config, origin, now), operationId: sessionId, ...body }) : undefined }); }
 const handle = (req: Request) => createStaffResearchEventHandler({ readiness: () => ({ state: "ready", config }), backend: () => backend, now: () => now })(req);
 beforeEach(() => { vi.stubEnv("RESEARCH_JUDGING_ENABLED", "true"); roles = ["superAdmin"]; assurance = true; data = settings(); backend = { rpc: vi.fn(async (name) => { if (name === "msrc_staff_status") return { enabled: true, emailDailyLimit: 40 }; if (name === "msrc_staff_form_claim") return { state: "claimed" }; if (name === "msrc_session_context") return persisted(); if (name === "msrc_staff_profile") return { schemaVersion: 1, actorId, name: "Synthetic Staff", roles, session: persisted() }; if (name === "msrc_staff_research_event_write") return { state: "updated" }; if (data instanceof Error) throw data; return data; }), identity: vi.fn(async () => actorId), refresh: vi.fn(async () => session), logout: vi.fn() } as unknown as StaffBackend; });
+function prepareNavigationReads(policy: unknown, entries: unknown = { state: "ready", entries: [entry] }) {
+  const original = backend.rpc;
+  backend.rpc = vi.fn(async (name, args, bearer) => {
+    if (name !== "msrc_staff_research_event_read") return original(name, args, bearer);
+    const value = args?.view === "settings" ? policy : entries;
+    if (value instanceof Error) throw value;
+    return value;
+  });
+}
+const researchReads = () => vi.mocked(backend.rpc).mock.calls.filter(([name]) => name === "msrc_staff_research_event_read");
+
+describe("research judging navigation settings", () => {
+  it.each(["superAdmin", "scientificAdministrator", "judgingCommittee"] as const)("bundles separately authorized list and policy for %s", async (role) => {
+    roles = [role];
+    prepareNavigationReads({ ...settings(), privateField: "PRIVATE POLICY" },
+      { state: "ready", entries: [{ ...entry, supervisorEmail: "PRIVATE ENTRY" }], policy: { hidden: "PRIVATE RAW POLICY" } });
+    const response = await handle(request(undefined, "?view=list&settings=1"));
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    const result = await response.json();
+    expect(result).toMatchObject({ state: "ready", entries: [{ id: submissionId, title: entry.title }], policy: settings(), formToken: expect.any(String) });
+    expect(result).not.toHaveProperty("settings");
+    expect(result.policy).not.toHaveProperty("formToken");
+    expect(JSON.stringify(result)).not.toContain("PRIVATE");
+    expect(researchReads()).toEqual(["list", "settings"].map((view) => ["msrc_staff_research_event_read", { edition_key: config.editionKey, view }, accessToken]));
+  });
+
+  it("rejects bundled staff settings in judges' own workspaces", async () => {
+    roles = ["facultyJudge"];
+    data = { state: "ready", assignments: [assignment()] };
+    expect((await handle(request(undefined, "?view=list&settings=1"))).status).toBe(403);
+    expect((await handle(request(undefined, "?view=judge_queue&settings=1"))).status).toBe(400);
+    expect(researchReads()).toHaveLength(0);
+    const response = await handle(request(undefined, "?view=judge_queue"));
+    expect(response.status).toBe(200);
+    expect(await response.json()).not.toHaveProperty("policy");
+  });
+
+  it.each([["denied", { state: "denied" }], ["area-not-ready", new StaffRpcMissingError()], ["unavailable", new Error("Synthetic settings error")]] as const)(
+    "preserves the list if the separately authorized policy is %s", async (state, policy) => {
+      prepareNavigationReads(policy);
+      const response = await handle(request(undefined, "?view=list&settings=1"));
+      expect(response.status).toBe(200);
+      const body = await response.json();
+      expect(body).toMatchObject({ state: "ready", entries: [{ id: submissionId }] });
+      expect(body.policy).toEqual({ state });
+    });
+
+  it("preserves standalone settings and avoids reading policy after a denied list", async () => {
+    prepareNavigationReads(settings(), { state: "denied" });
+    const denied = await handle(request(undefined, "?view=list&settings=1"));
+    expect(denied.status).toBe(403);
+    expect(researchReads().map(([, args]) => args?.view)).toEqual(["list"]);
+    const standalone = await handle(request());
+    expect(standalone.status).toBe(200);
+    const body = await standalone.json();
+    expect(body).toMatchObject(settings());
+    expect(body).not.toHaveProperty("policy");
+  });
+});
+
 describe("ENG-078 research event staff boundary", () => {
   it("preserves permitted abstract titles through staff allocation and judge packets", () => {
     const title = Array.from({ length: 20 }, () => "x".repeat(200)).join(" ");

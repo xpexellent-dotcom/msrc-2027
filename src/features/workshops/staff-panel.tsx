@@ -5,7 +5,7 @@ import type { Locale } from "@/lib/i18n";
 import type { Role } from "@/lib/permissions/contract";
 import { formatStaffDate, formatStaffNumber } from "@/features/staff-portal/console-shell";
 import { requestStaffWorkshops } from "./staff-client";
-import { emptyWorkshopFields, WORKSHOP_DATE_FIELDS, WORKSHOP_NUMBER_FIELDS, WORKSHOP_TEXT_FIELDS, type StaffWorkshop, type WorkshopBooking, type WorkshopFields, type WorkshopPolicy, type WorkshopStaffPayload, type WorkshopStaffResponse, type WorkshopStaffView } from "./staff-contract";
+import { emptyWorkshopFields, workshopStaffMutationSucceeded, WORKSHOP_DATE_FIELDS, WORKSHOP_NUMBER_FIELDS, WORKSHOP_TEXT_FIELDS, type StaffWorkshop, type WorkshopBooking, type WorkshopFields, type WorkshopPolicy, type WorkshopStaffOverview, type WorkshopStaffPayload, type WorkshopStaffView } from "./staff-contract";
 import { workshopStaffCopy } from "./staff-copy";
 
 type Text = typeof workshopStaffCopy[Locale];
@@ -50,17 +50,31 @@ export function WorkshopStaffPanel({ locale, roles }: { locale: Locale; roles: r
   const text = workshopStaffCopy[locale], [view, setView] = useState<WorkshopStaffView | null>(null), [busy, setBusy] = useState(true), [message, setMessage] = useState(""), [failure, setFailure] = useState(false), [editing, setEditing] = useState<StaffWorkshop | "new" | null>(null), [filter, setFilter] = useState("");
   const formToken = useRef<string | undefined>(undefined), lock = useRef(false), active = useRef(true), pending = useRef<AbortController | null>(null), feedback = useRef<HTMLParagraphElement>(null), manager = roles.includes("registrationWorkshopAdministrator") || roles.includes("superAdmin");
   const retry = useRef<{ payload: string; operationId: string } | null>(null);
-  const errorText = useCallback((response: WorkshopStaffResponse) => response.state in text.errors ? text.errors[response.state as keyof typeof text.errors] : text.errors.unavailable, [text]);
-  const load = useCallback(async (signal?: AbortSignal) => { const response = await requestStaffWorkshops(undefined, signal); if (signal?.aborted || !active.current) return false; formToken.current = response.formToken; if (response.state === "ready" && response.policy !== undefined && response.workshops && response.bookings && response.reservations && response.conflicts) { setView(response as WorkshopStaffView); return true; } setMessage(errorText(response)); setFailure(true); return false; }, [errorText]);
+  const errorText = useCallback((response: WorkshopStaffOverview) => response.state in text.errors ? text.errors[response.state as keyof typeof text.errors] : text.errors.unavailable, [text]);
+  const applyOverview = useCallback((response: WorkshopStaffOverview) => {
+    if (response.state === "ready" && response.policy !== undefined && response.workshops && response.bookings && response.reservations && response.conflicts) {
+      setView(response as WorkshopStaffView); return true;
+    }
+    setMessage(errorText(response)); setFailure(true); return false;
+  }, [errorText]);
+  const load = useCallback(async (signal?: AbortSignal) => {
+    const response = await requestStaffWorkshops(undefined, signal);
+    if (signal?.aborted || !active.current) return false;
+    formToken.current = response.formToken;
+    return applyOverview(response);
+  }, [applyOverview]);
   useEffect(() => { active.current = true; const controller = new AbortController(); pending.current = controller; const startup = window.setTimeout(() => { void load(controller.signal).finally(() => { if (!controller.signal.aborted && active.current) setBusy(false); }); }, 0); return () => { active.current = false; window.clearTimeout(startup); controller.abort(); pending.current?.abort(); }; }, [load]);
   useEffect(() => { if (failure && message) feedback.current?.focus(); }, [failure, message]);
   const act: Action = async (payload) => {
     if (lock.current || !formToken.current) return false; lock.current = true; setBusy(true); setMessage(""); setFailure(false);
     const serialized = JSON.stringify(payload); if (retry.current?.payload !== serialized) retry.current = { payload: serialized, operationId: crypto.randomUUID() };
     const response = await requestStaffWorkshops({ ...payload, operationId: retry.current.operationId, formToken: formToken.current }); if (!active.current) { lock.current = false; return false; } formToken.current = response.formToken;
-    const success = ["ready", "updated", "created", "already_checked_in", "already_completed"].includes(response.state);
+    const success = workshopStaffMutationSucceeded(response.state);
     if (response.state !== "unavailable") retry.current = null;
-    if (success) { const loaded = await load(); if (loaded) { setMessage(text.saved); setFailure(false); } } else { setMessage(errorText(response)); setFailure(true); }
+    if (success) {
+      const loaded = response.overview ? applyOverview(response.overview) : await load();
+      if (loaded) { setMessage(text.saved); setFailure(false); }
+    } else { setMessage(errorText(response)); setFailure(true); }
     setBusy(false); lock.current = false; return success;
   };
   const workshops = view?.workshops.filter((item) => !filter || item.id === filter) ?? [], bookings = view?.bookings.filter((item) => !filter || item.workshopId === filter).toSorted((a, b) => a.requestedAt.localeCompare(b.requestedAt) || a.id.localeCompare(b.id)) ?? [];

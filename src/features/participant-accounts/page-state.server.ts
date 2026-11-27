@@ -5,7 +5,8 @@ import type { ParticipantPageState } from "./contracts";
 import { getParticipantConfig } from "./config.server";
 import { participantCopy, type ParticipantScreen } from "./participant-copy";
 import { participantNotice } from "./privacy.server";
-import { observeParticipantPage, participantPageReady } from "./handler.server";
+import { observeParticipantPage } from "./handler.server";
+import { participantFormToken } from "./security.server";
 
 /**
  * Tab title for a participant screen. While account configuration is closed (production today) it
@@ -16,7 +17,7 @@ export function participantPageTitle(locale: Locale, screen: ParticipantScreen):
   return `MSRC 2027 | ${getParticipantConfig().state === "ready" ? copy.titles[screen] : copy.comingSoon}`;
 }
 
-export async function readParticipantPageState(locale: Locale): Promise<ParticipantPageState> {
+export async function readParticipantPageState(locale: Locale, { prepareLogout = false } = {}): Promise<ParticipantPageState> {
   const closed: ParticipantPageState = { enabled: false, notice: participantNotice(locale, false), profile: null, sessionState: "anonymous" };
   const readiness = getParticipantConfig();
   if (readiness.state !== "ready") return closed;
@@ -25,8 +26,9 @@ export async function readParticipantPageState(locale: Locale): Promise<Particip
   if (!origin) return closed;
   // A strict fixed loopback fixture opens only synthetic UI presentation tests. No native provider request is made.
   if (readiness.config.testMode) return { ...closed, enabled: true, notice: participantNotice(locale, true) };
-  if (!await participantPageReady(readiness.config)) return closed;
   const request = new Request(origin + "/api/participant-accounts", { headers: { host: new URL(origin).host, cookie: current.get("cookie") ?? "" } });
-  const profile = await observeParticipantPage(request, readiness.config);
-  return { enabled: true, notice: participantNotice(locale, false), profile, sessionState: profile ? "authenticated" : "anonymous" };
+  const { enabled, profile } = await observeParticipantPage(request, readiness.config);
+  if (!enabled) return closed;
+  return { enabled: true, notice: participantNotice(locale, false), profile, sessionState: profile ? "authenticated" : "anonymous",
+    ...(prepareLogout && profile ? { formToken: participantFormToken(readiness.config, origin) } : {}) };
 }

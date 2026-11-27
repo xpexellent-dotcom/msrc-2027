@@ -30,6 +30,7 @@ for (const locale of ["en", "ar"] as const) {
     await expect(video).toHaveAttribute("src", source);
     await expect(video).toHaveAttribute("autoplay", "");
     await expect(video).toHaveAttribute("playsinline", "");
+    await expect(video).not.toHaveAttribute("poster");
     await expect(video).not.toHaveAttribute("loop");
     await expect(video).toHaveAttribute("tabindex", "-1");
     await expect(video).toHaveAttribute("aria-hidden", "true");

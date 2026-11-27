@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import type { ParticipantResponse, ParticipantState } from "./contracts";
+import type { ParticipantAction, ParticipantResponse, ParticipantState } from "./contracts";
 import { participantScreens } from "./participant-copy";
 
 export type ParticipantDraft = Readonly<{
@@ -21,14 +21,16 @@ export type ParticipantDraft = Readonly<{
   expiresAt: string | null;
   resendAvailableAt: string | null;
   pending: boolean;
+  action: ParticipantAction | null;
   outcomeSequence: number;
   fieldErrors: ParticipantResponse["fieldErrors"];
 }>;
-const emptyDraft: ParticipantDraft = { name: "", firstName: "", lastName: "", email: "", password: "", confirmPassword: "", code: "", ageConfirmed: false, fromSignup: false, requestId: null, purpose: "verification", outcome: null, expiresAt: null, resendAvailableAt: null, pending: false, outcomeSequence: 0, fieldErrors: {} };
+const emptyDraft: ParticipantDraft = { name: "", firstName: "", lastName: "", email: "", password: "", confirmPassword: "", code: "", ageConfirmed: false, fromSignup: false, requestId: null, purpose: "verification", outcome: null, expiresAt: null, resendAvailableAt: null, pending: false, action: null, outcomeSequence: 0, fieldErrors: {} };
 let draft: ParticipantDraft = emptyDraft;
 let generation = 0;
 const listeners = new Set<() => void>();
 let watchingPageExit = false;
+export const participantLogoutEvent = "msrc-participant-logout";
 
 // LOC-01: retain unsaved input only within this document's memory. A locale
 // navigation reuses the module; a page exit clears credentials, including BFCache.
@@ -38,16 +40,20 @@ export function updateParticipantDraft(next: Partial<ParticipantDraft>) {
 }
 export function clearParticipantDraft() { generation += 1; updateParticipantDraft(emptyDraft); }
 export function clearParticipantCredentials() { updateParticipantDraft({ password: "", confirmPassword: "", code: "", ageConfirmed: false }); }
-export function beginParticipantAction() {
+export function hasPendingParticipantLogout() { return draft.pending && draft.action === "logout"; }
+export function beginParticipantAction(action: ParticipantAction | null = null) {
   if (draft.pending) return null;
   generation += 1;
-  updateParticipantDraft({ pending: true, outcome: null, fieldErrors: {} });
+  updateParticipantDraft({ pending: true, action, outcome: null, fieldErrors: {} });
+  if (action === "logout" && typeof window !== "undefined") window.dispatchEvent(new Event(participantLogoutEvent));
   return generation;
 }
 export function finishParticipantAction(requestGeneration: number, next: Partial<ParticipantDraft>) {
   // A completed request cannot restore credentials after the document has exited.
   if (requestGeneration !== generation || !draft.pending) return false;
+  const logoutUnconfirmed = draft.action === "logout" && next.outcome !== "signed_out";
   updateParticipantDraft({ ...next, pending: false, outcomeSequence: draft.outcomeSequence + 1 });
+  if (logoutUnconfirmed && typeof window !== "undefined") window.dispatchEvent(new Event(participantLogoutEvent));
   return true;
 }
 function subscribe(listener: () => void) {

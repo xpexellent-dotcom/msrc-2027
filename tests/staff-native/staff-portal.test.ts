@@ -137,6 +137,9 @@ describe.skipIf(!ci)("BL-AUTH-01/05/06 staff genuine handler to native Auth to S
       update msrc_staff.policy set enabled=true,email_daily_limit=200 where singleton;`);
     check((await signIn(first)).state === "enroll-totp", "first Super Admin has no access before enrollment");
     check((await get(first, "people")).status === 403, "password alone cannot access people");
+    const startup = await post(first, { action: "activity", area: "people" });
+    check(startup.status === 403 && !Object.hasOwn(startup.result, "people") && !Object.hasOwn(startup.result, "invitations"),
+      "password alone cannot open the People and roles startup response");
   });
   it("replaces only the owner's interrupted unverified setup and still requires genuine authenticator proof", async () => {
     const interrupted = await post(first, { action: "enroll-totp" });
@@ -267,7 +270,24 @@ describe.skipIf(!ci)("BL-AUTH-01/05/06 staff genuine handler to native Auth to S
     const issue = await post(ordinary, { action: "challenge-email" }); check(issue.result.state === "pending-email" && emailCode, "genuine native exact-session email code is captured only in memory");
     const verified = await post(ordinary, { action: "verify-email", code: emailCode }); check(verified.result.state === "authenticated", "database receipt authorizes the exact native staff session");
     check((await get(ordinary, "participants")).status === 200, "registration role can read participants after strongest assurance");
+    const startup = await post(ordinary, { action: "activity", area: "participants" });
+    check(startup.status === 200 && startup.result.state === "authenticated" && Array.isArray(startup.result.participants)
+      && !Object.hasOwn(startup.result, "people"), "exact-session checked registration staff can use scoped navigation for participants");
     check((await get(ordinary, "people")).status === 403 && (await get(ordinary, "audit")).status === 403, "registration role is denied Super Admin reporting");
+  });
+  it("opens People and roles through the protected startup exactly once per form nonce", async () => {
+    const startup = { action: "activity", area: "people", formToken: staffFormToken(config, origin) };
+    const allowed = await post(first, startup);
+    check(allowed.status === 200 && allowed.result.state === "authenticated"
+      && Array.isArray(allowed.result.people) && allowed.result.people.some((entry) => entry.actorId === first.id)
+      && Array.isArray(allowed.result.invitations), "verified Super Admin startup uses the genuine authorized People read");
+    const replay = await post(first, startup);
+    check(replay.status === 429 && !Object.hasOwn(replay.result, "people") && !Object.hasOwn(replay.result, "invitations"),
+      "database form claim blocks replay of the People and roles response");
+    const denied = await post(ordinary, { action: "activity", area: "people" });
+    check(denied.status === 403 && denied.result.areaFailure === "denied"
+      && !Object.hasOwn(denied.result, "people") && !Object.hasOwn(denied.result, "invitations"),
+      "verified regular staff cannot use navigation activity to read Super Admin data");
   });
   it("denies ordinary staff password rotation and rejects another actor field before native work", async () => {
     check((await post(ordinary, passwordInput(randomBytes(24).toString("hex")))).status === 403, "regular staff email assurance is not Super Admin password-change authority");

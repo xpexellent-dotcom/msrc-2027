@@ -6,37 +6,60 @@ import { Arrow } from "@/components/ui/arrow";
 import { hasParticipantHint, requestAccount } from "@/features/participant-accounts/participant-client";
 import { participantCopy } from "@/features/participant-accounts/participant-copy";
 import { ProfileAvatar } from "@/features/participant-accounts/profile-avatar";
-import { requestParticipantProfile } from "@/features/participant-accounts/profile-client";
+import { hasPendingParticipantLogout, participantLogoutEvent } from "@/features/participant-accounts/participant-draft";
+import { participantProfileAvatarEvent, requestParticipantProfile } from "@/features/participant-accounts/profile-client";
 import type { Locale } from "@/lib/i18n";
 
 /**
  * ENG-083/085: the signed-in participant's name, or null. Anonymous visitors
  * never call the account API; the session itself stays in an HttpOnly cookie.
  */
-export function useParticipantName() {
+export function useParticipantName(profileDashboard: boolean) {
   const [name, setName] = useState<string | null>(null);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [profileEnabled, setProfileEnabled] = useState(false);
+  const [avatar, setAvatar] = useState<{ url: string | null; dashboard: boolean } | null>(null);
   useEffect(() => {
-    const controller = new AbortController();
-    let generation = 0;
+    let activeRequest: AbortController | undefined;
+    const cancel = () => activeRequest?.abort();
     async function check() {
-      const current = ++generation;
-      if (!hasParticipantHint()) { setName(null); setAvatarUrl(null); return; }
-      const { response } = await requestAccount(undefined, controller.signal);
-      if (controller.signal.aborted || current !== generation) return;
-      setName(response.profile?.name ?? null); setAvatarUrl(null);
-      if (response.profile && response.profileEnabled) {
-        const profile = await requestParticipantProfile(undefined, controller.signal);
-        if (!controller.signal.aborted && current === generation) setAvatarUrl(profile.state === "ready" ? profile.profile.avatarUrl : null);
-      }
+      cancel();
+      if (!hasParticipantHint()) { setName(null); setProfileEnabled(false); setAvatar(null); return; }
+      if (hasPendingParticipantLogout()) return;
+      const controller = new AbortController();
+      activeRequest = controller;
+      const { response } = await requestAccount(undefined, controller.signal, "header");
+      if (controller.signal.aborted || hasPendingParticipantLogout()) return;
+      setName(response.profile?.name ?? null);
+      setProfileEnabled(!!response.profile && response.profileEnabled === true);
+      if (!response.profile || !response.profileEnabled) { setAvatar(null); return; }
+      // My MSRC already reads the authorized profile for its editor.
+      if (profileDashboard) return;
+      const profile = await requestParticipantProfile(undefined, controller.signal);
+      if (!controller.signal.aborted) setAvatar({ url: profile.state === "ready" ? profile.profile.avatarUrl : null, dashboard: false });
     }
-    void check();
     const changed = () => void check();
+    const readDashboardAvatar = (event: Event) => {
+      if (!profileDashboard || hasPendingParticipantLogout() || !(event instanceof CustomEvent)) return;
+      if (event.detail === null || typeof event.detail === "string" && /^\/api\/participant-accounts\/profile\/avatar(?:\?v=\d+)?$/.test(event.detail)) {
+        setAvatar({ url: event.detail, dashboard: true });
+      }
+    };
     window.addEventListener("msrc-participant-hint", changed);
-    window.addEventListener("msrc-participant-profile", changed);
-    return () => { controller.abort(); window.removeEventListener("msrc-participant-hint", changed); window.removeEventListener("msrc-participant-profile", changed); };
-  }, []);
-  return { name, avatarUrl };
+    window.addEventListener(participantProfileAvatarEvent, readDashboardAvatar);
+    const logoutChanged = () => {
+      if (hasPendingParticipantLogout()) cancel();
+      else void check();
+    };
+    window.addEventListener(participantLogoutEvent, logoutChanged);
+    void check();
+    return () => {
+      cancel();
+      window.removeEventListener("msrc-participant-hint", changed);
+      window.removeEventListener(participantProfileAvatarEvent, readDashboardAvatar);
+      window.removeEventListener(participantLogoutEvent, logoutChanged);
+    };
+  }, [profileDashboard]);
+  return { name, avatarUrl: profileEnabled && avatar?.dashboard === profileDashboard ? avatar.url : null };
 }
 
 /** ENG-085: where the header's primary action goes, for the signed-in state. */

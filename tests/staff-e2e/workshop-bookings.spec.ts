@@ -10,15 +10,18 @@ const id = (n: number) => `eb200000-0000-4000-8000-${String(n).padStart(12, "0")
 const at = "2026-10-24T07:00:00Z";
 const workshop: StaffWorkshop = { ...emptyWorkshopFields(), id: id(1), version: 1, titleEn: "Synthetic workshop", titleAr: "ورشة تجريبية", descriptionEn: "Synthetic workshop description", descriptionAr: "وصف ورشة تجريبي", instructor: "Synthetic instructor", room: "Synthetic room", startAt: "2030-01-27T07:00:00Z", endAt: "2030-01-27T08:00:00Z", bookingDeadline: "2030-01-26T07:00:00Z", capacity: 3, priceMinor: 0, currency: "SAR", transferBufferMinutes: 0, eligibilityEn: "Confirmed registration", eligibilityAr: "تسجيل مؤكد", eligibilityRule: "confirmed_registration", published: true, remaining: 1, removed: false, ready: true, canManage: true, canCheckin: true, canComplete: true };
 const booking: WorkshopBooking = { id: id(2), workshopId: id(1), actorId: id(3), status: "held", requestedAt: at, expiresAt: "2030-01-25T07:00:00Z", approvedAt: null, checkedInAt: null, completedAt: null, fullDiscount: false, conflict: false };
-async function fixture(page: Page, options: { role?: Role; missing?: boolean; confirmed?: boolean; conflict?: boolean; failure?: boolean; closed?: boolean } = {}) {
-  const role = options.role ?? "superAdmin", actions: WorkshopStaffPayload[] = [];
+async function fixture(page: Page, options: { role?: Role; missing?: boolean; confirmed?: boolean; conflict?: boolean; failure?: boolean; closed?: boolean; legacy?: boolean; overviewFailure?: boolean } = {}) {
+  const role = options.role ?? "superAdmin", actions: WorkshopStaffPayload[] = [], reads: string[] = [];
   const manager = role === "superAdmin" || role === "registrationWorkshopAdministrator";
   let failed = false;
   const view: WorkshopStaffView = { policy: { enabled: !options.closed, holdHours: null, offerHours: null, mockPaymentEnabled: false }, workshops: [{ ...workshop, canManage: manager, canComplete: manager }], bookings: [{ ...booking, ...(options.confirmed ? { status: "confirmed", approvedAt: at } : {}), conflict: options.conflict ?? false }], reservations: [], conflicts: options.conflict ? [{ id: id(5), bookingId: id(2), otherBookingId: id(4), createdAt: at, resolvedAt: null }] : [] };
   await page.route("**/api/staff-portal**", async (route) => {
-    if (new URL(route.request().url()).pathname !== "/api/staff-portal/workshops") return route.fulfill({ json: { state: "authenticated", profile: { actorId: id(9), name: "Synthetic Staff", roles: [role] }, formToken: "synthetic-staff-token" } });
+    const url = new URL(route.request().url()), method = route.request().method();
+    if (url.pathname !== "/api/staff-portal/workshops") return route.fulfill({ json: { state: "authenticated", profile: { actorId: id(9), name: "Synthetic Staff", roles: [role] }, formToken: "synthetic-staff-token" } });
+    reads.push(method);
     if (options.missing) return route.fulfill({ status: 503, json: { state: "area-not-ready", formToken: "synthetic-workshop-token" } });
-    if (route.request().method() === "GET") return route.fulfill({ json: { state: "ready", ...view, formToken: "synthetic-workshop-token" } });
+    if (method === "GET") return route.fulfill({ json: { state: "ready", ...view, formToken: "synthetic-workshop-token" } });
+    expect(url.searchParams.get("include")).toBe("overview");
     const input = route.request().postDataJSON() as WorkshopStaffPayload; actions.push(input);
     expect(input.formToken).toBe("synthetic-workshop-token");
     if (options.failure && !failed) { failed = true; return route.fulfill({ status: 503, json: { state: "unavailable", formToken: "synthetic-workshop-token" } }); }
@@ -31,9 +34,10 @@ async function fixture(page: Page, options: { role?: Role; missing?: boolean; co
     if (input.action === "complete") row.completedAt = at;
     if (input.action === "reserve") view.reservations = [{ id: id(7), workshopId: workshop.id, seats: input.seats!, reason: input.reason!, releaseAt: input.releaseAt!, releasedAt: null }];
     if (input.action === "resolve_conflict") { row.status = "cancelled"; row.conflict = false; view.conflicts = []; }
-    return route.fulfill({ json: { state: "updated", formToken: "synthetic-workshop-token" } });
+    return route.fulfill({ json: { state: "updated", formToken: "synthetic-workshop-token",
+      ...(options.legacy ? {} : { overview: options.overviewFailure ? { state: "unavailable" } : { state: "ready", ...view } }) } });
   });
-  return { actions };
+  return { actions, reads };
 }
 for (const locale of ["en", "ar"] as const) {
   const copy = workshopStaffCopy[locale], staff = staffCopy[locale];
@@ -55,13 +59,14 @@ for (const locale of ["en", "ar"] as const) {
     await expect(page.locator("html")).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
   });
   test(`${locale} staff decisions retain retry identity and reservations require reason and release time`, async ({ page }) => {
-    const { actions } = await fixture(page, { role: "registrationWorkshopAdministrator", failure: true }); await page.goto(`/${locale}/staff/workshops`);
+    const { actions, reads } = await fixture(page, { role: "registrationWorkshopAdministrator", failure: true }); await page.goto(`/${locale}/staff/workshops`);
     const area = page.getByTestId("workshop-staff"), request = area.locator("#workshop-requests-title").locator("..").locator("li").first();
     const controls = request.locator("summary").filter({ hasText: copy.edit }).locator("..");
     await controls.locator("summary").click(); await controls.getByLabel(copy.reason, { exact: true }).fill("Synthetic approval");
     await controls.getByRole("button", { name: copy.approve, exact: true }).click(); await expect(area.getByRole("alert")).toHaveText(copy.errors.unavailable);
     await controls.getByRole("button", { name: copy.approve, exact: true }).click(); await expect(area.getByRole("status")).toHaveText(copy.saved);
     expect(actions[1].operationId).toBe(actions[0].operationId); expect(actions[0]).toMatchObject({ action: "approve", bookingId: booking.id });
+    expect(reads).toEqual(["GET", "POST", "POST"]);
     await controls.getByRole("button", { name: copy.discount, exact: true }).click(); await expect(request).toContainText(copy.discountValidated);
     await controls.locator(`#workshop-deadline-${booking.id}`).fill("2030-01-26T09:00");
     await controls.getByRole("button", { name: copy.extend, exact: true }).click(); await expect(area.getByRole("status")).toHaveText(copy.saved);
@@ -71,6 +76,27 @@ for (const locale of ["en", "ar"] as const) {
     await reservation.getByLabel(copy.seats, { exact: true }).fill("1"); await reservation.getByLabel(copy.releaseAt, { exact: true }).fill("2030-01-25T12:00"); await reservation.getByLabel(copy.reason, { exact: true }).fill("Synthetic reserved equipment place");
     await reservation.getByRole("button", { name: copy.reserve, exact: true }).click(); await expect(area).toContainText("Synthetic reserved equipment place");
     expect(actions.find((input) => input.action === "reserve")).toMatchObject({ seats: 1, releaseAt: "2030-01-25T09:00:00.000Z", reason: "Synthetic reserved equipment place" });
+  });
+  test(`${locale} old workshop responses fall back to refreshing without another write`, async ({ page }) => {
+    const { actions, reads } = await fixture(page, { confirmed: true, legacy: true });
+    await page.goto(`/${locale}/staff/workshops`);
+    const area = page.getByTestId("workshop-staff");
+    await area.getByRole("button", { name: copy.checkin, exact: true }).click();
+    await expect(area.getByRole("status")).toHaveText(copy.saved);
+    expect(actions).toHaveLength(1);
+    expect(reads).toEqual(["GET", "POST", "GET"]);
+  });
+  test(`${locale} a successful workshop write with an unavailable overview can be refreshed`, async ({ page }) => {
+    const { actions, reads } = await fixture(page, { confirmed: true, overviewFailure: true });
+    await page.goto(`/${locale}/staff/workshops`);
+    const area = page.getByTestId("workshop-staff");
+    await area.getByRole("button", { name: copy.checkin, exact: true }).click();
+    await expect(area.getByRole("alert")).toHaveText(copy.errors.unavailable);
+    expect(reads).toEqual(["GET", "POST"]);
+    await area.getByRole("button", { name: copy.refresh, exact: true }).click();
+    await expect(area.getByRole("button", { name: copy.complete, exact: true })).toBeVisible();
+    expect(actions).toHaveLength(1);
+    expect(reads).toEqual(["GET", "POST", "GET"]);
   });
   test(`${locale} check-in and authorized completion are separate, and check-in staff cannot approve`, async ({ page }) => {
     await fixture(page, { role: "checkInStaff", confirmed: true }); await page.goto(`/${locale}/staff/workshops`);

@@ -102,10 +102,11 @@ export function createAbstractHandler(dependencies: { readiness?: () => Particip
         const saved = abstractRecord(row?.submission);
         if (saved && typeof saved.id === "string" && participantUuid.test(saved.id)) submissionId = saved.id;
       }
-      const raw = await backend.rpc("msrc_abstracts_me", args), refused = gate(raw); if (refused) return refused;
-      const data = abstractRecord(raw);
+      // A write needs a fresh persisted snapshot. A read can project the authorized snapshot it already has.
+      const data = request.method === "POST" ? abstractRecord(await backend.rpc("msrc_abstracts_me", args)) : before;
+      const refused = gate(data); if (refused) return refused;
       if (!data || Object.keys(data).sort().join(",") !== "presenter,settings,state,submissions" || data.state !== "ready" || !Array.isArray(data.submissions)) return reply({ state: "unavailable" }, 503);
-      const settings = abstractSettingsProjection(data.settings), submissions = data.submissions.map(abstractSubmissionProjection);
+      const settings = data === before ? beforeSettings : abstractSettingsProjection(data.settings), submissions = data.submissions.map(abstractSubmissionProjection);
       if (!settings || submissions.some((row) => !row)) return reply({ state: "unavailable" }, 503);
       return reply({ state: "ready", window, profileComplete, presenterEligible: eligible, presenter: { id: session.actorId, name: presenter.name as string, email: presenter.email as string, institution: presenter.institution as string, status: presenter.status as string | null }, settings, submissions: submissions.filter((row) => row !== null), formToken: fresh(), ...(outcome ? { outcome } : {}), ...(submissionId ? { submissionId } : {}) }, outcome && !["saved", "finalized"].includes(outcome) ? 409 : 200);
     } catch (error) { return reply({ state: error instanceof AbstractRpcMissingError ? "area-not-ready" : "unavailable" }, 503); }

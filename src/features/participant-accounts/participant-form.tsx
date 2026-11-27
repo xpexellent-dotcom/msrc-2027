@@ -13,7 +13,7 @@ import type { Locale } from "@/lib/i18n";
 import type { ParticipantAction, ParticipantField, ParticipantPageState, ParticipantPayload, ParticipantProfile, ParticipantResponse, ParticipantState } from "./contracts";
 import { participantCopy, type ParticipantScreen } from "./participant-copy";
 import { requestAccount } from "./participant-client";
-import { beginParticipantAction, finishParticipantAction, normalizeParticipantCode, updateParticipantDraft, useParticipantDraft } from "./participant-draft";
+import { beginParticipantAction, finishParticipantAction, hasPendingParticipantLogout, normalizeParticipantCode, updateParticipantDraft, useParticipantDraft } from "./participant-draft";
 import { ParticipantDashboard } from "./participant-dashboard";
 
 const fields: ParticipantField[] = ["firstName", "lastName", "email", "password", "confirmPassword", "code", "ageConfirmed"];
@@ -34,10 +34,11 @@ export function ParticipantAccountForm({ locale, screen, initialState, profileEn
   const draft = useParticipantDraft();
   // A completion can land in the prior locale's unmounted form. Observe its
   // shared outcome here, and cancel any status read from before the mutation.
-  const authenticationStatusRefresh = draft.outcome === "authenticated" || draft.outcome === "signed_out" || draft.outcome === "password_reset" ? draft.outcomeSequence : 0;
+  const authenticationStatusRefresh = draft.outcome === "authenticated" || draft.outcome === "signed_out" || draft.outcome === "password_reset"
+    || draft.action === "logout" && draft.outcome === "unavailable" ? draft.outcomeSequence : 0;
   const [availability, setAvailability] = useState<"checking" | "ready" | "closed" | "unavailable">(initialState.profile ? "ready" : "checking");
   const [profile, setProfile] = useState<ParticipantProfile | null>(initialState.profile);
-  const [formToken, setFormToken] = useState<string | null>(null);
+  const [formToken, setFormToken] = useState<string | null>(screen === "my-msrc" ? initialState.formToken ?? null : null);
   const [tokenUsableAt, setTokenUsableAt] = useState<number | null>(null);
   const [retryAt, setRetryAt] = useState<number | null>(null);
   const [now, setNow] = useState(0);
@@ -48,6 +49,7 @@ export function ParticipantAccountForm({ locale, screen, initialState, profileEn
   const outcome = useRef<HTMLParagraphElement>(null);
   const lastOutcome = useRef(draft.outcomeSequence);
   const mounted = useRef(false);
+  const statusRequest = useRef<AbortController | null>(null);
   const form = useRef<HTMLFormElement>(null);
   const notice = initialState.notice;
   const needsName = screen === "sign-up";
@@ -64,20 +66,24 @@ export function ParticipantAccountForm({ locale, screen, initialState, profileEn
   const codeExpired = expiredAt !== null && expiredAt <= now;
   const waiting = (tokenUsableAt !== null && tokenUsableAt > now) || (retryAt !== null && retryAt > now);
   const disabled = availability !== "ready" || !formToken || draft.pending || waiting;
+  const signOutDisabled = availability !== "ready" || !profile || !formToken || draft.pending || (retryAt !== null && retryAt > now);
   const frozen = availability !== "ready" || !formToken || draft.pending;
   const errorState = draft.outcome && failedStates.has(draft.outcome) ? draft.outcome : null;
   const activeFields = fields.filter((field) => field === "email" || ((field === "firstName" || field === "lastName" || field === "confirmPassword" || field === "ageConfirmed") && needsName) || (field === "password" && needsPassword) || (field === "code" && needsCode));
 
   useEffect(() => {
     mounted.current = true;
-    const controller = new AbortController();
     async function restore() {
+      if (statusRequest.current || hasPendingParticipantLogout()) return;
+      const controller = new AbortController();
+      statusRequest.current = controller;
       const { response: result, receivedAt } = await requestAccount(undefined, controller.signal);
+      if (statusRequest.current === controller) statusRequest.current = null;
       if (controller.signal.aborted) return;
       setAvailability(result.state === "closed" ? "closed" : result.state === "ready" || result.state === "authenticated" ? "ready" : "unavailable");
       setProfile(result.profile ?? null);
       setFormToken(result.formToken ?? null);
-      setTokenUsableAt(result.formToken ? receivedAt + minimumFillMs : null);
+      setTokenUsableAt(screen !== "my-msrc" && result.formToken ? receivedAt + minimumFillMs : null);
       setNow(receivedAt);
       if (result.state === "closed") updateParticipantDraft({ ageConfirmed: false });
     }
@@ -85,7 +91,13 @@ export function ParticipantAccountForm({ locale, screen, initialState, profileEn
     const recover = (event: PageTransitionEvent) => { if (event.persisted) void restore(); };
     window.addEventListener("pageshow", recover);
     const interval = screen === "my-msrc" ? window.setInterval(() => { if (document.visibilityState === "visible") void restore(); }, 60_000) : null;
-    return () => { mounted.current = false; controller.abort(); window.removeEventListener("pageshow", recover); if (interval !== null) window.clearInterval(interval); };
+    return () => {
+      mounted.current = false;
+      statusRequest.current?.abort();
+      statusRequest.current = null;
+      window.removeEventListener("pageshow", recover);
+      if (interval !== null) window.clearInterval(interval);
+    };
   }, [screen, statusRefresh, authenticationStatusRefresh]);
 
   useEffect(() => {
@@ -134,9 +146,13 @@ export function ParticipantAccountForm({ locale, screen, initialState, profileEn
   function edit(field: Exclude<ParticipantField, "ageConfirmed">, value: string) { updateParticipantDraft({ [field]: field === "code" ? normalizeParticipantCode(value) : value, outcome: null, fieldErrors: {} }); }
 
   async function handleAction(action: ParticipantAction, validate = true) {
-    if (disabled) return;
-    const generation = beginParticipantAction();
+    if (action === "logout" ? signOutDisabled : disabled) return;
+    const generation = beginParticipantAction(action);
     if (generation === null) return;
+    if (action === "logout") {
+      statusRequest.current?.abort();
+      statusRequest.current = null;
+    }
     if (validate) {
       const errors: ParticipantResponse["fieldErrors"] = {};
       const validatedFields: ParticipantField[] = action === "forgot" ? ["email"] : action === "resend" ? ["email", "password"] : activeFields;
@@ -167,11 +183,12 @@ export function ParticipantAccountForm({ locale, screen, initialState, profileEn
     });
     if (!applied || !mounted.current) return;
     setFormToken(response.formToken ?? null);
-    setTokenUsableAt(response.formToken ? receivedAt + minimumFillMs : null);
+    setTokenUsableAt(screen !== "my-msrc" && response.formToken ? receivedAt + minimumFillMs : null);
     setRetryAt(response.retryAfterSeconds ? receivedAt + response.retryAfterSeconds * 1_000 : null);
     setNow(receivedAt);
     if (response.state === "closed") setAvailability("closed");
-    if (response.state === "authenticated" || response.state === "signed_out" || response.state === "password_reset") setProfile(response.profile ?? null);
+    if (response.state === "authenticated" || response.state === "signed_out" || response.state === "password_reset"
+      || action === "logout" && response.state === "unavailable") setProfile(response.profile ?? null);
     if (!response.formToken) setStatusRefresh((value) => value + 1);
     if (action === "verify" && response.state === "verified" && response.formToken && payload.email && payload.password) {
       const credentials = { email: payload.email, password: payload.password, formToken: response.formToken };
@@ -190,7 +207,8 @@ export function ParticipantAccountForm({ locale, screen, initialState, profileEn
     const action: ParticipantAction = screen === "sign-up" ? "signup" : screen === "sign-in" ? "signin" : screen === "verify-email" ? "verify" : screen === "forgot-password" ? "forgot" : "reset";
     void handleAction(action);
   }
-  const dashboardReady = screen === "my-msrc" && profile !== null && availability === "ready";
+  const signingOut = draft.pending && draft.action === "logout";
+  const dashboardReady = screen === "my-msrc" && profile !== null && availability === "ready" && !signingOut && draft.outcome !== "signed_out";
   const navigation: ParticipantScreen[] = dashboardReady ? [] : signedIn ? registrationAvailable ? ["my-msrc"] : [] : screen === "sign-up" ? ["sign-in"] : screen === "sign-in" ? ["sign-up", "forgot-password", "verify-email"] : screen === "forgot-password" ? ["reset-password", "sign-in"] : screen === "verify-email" ? ["sign-in"] : screen === "reset-password" ? ["forgot-password", "sign-in"] : ["sign-in"];
 
   if (availability === "closed") return <section className="participant-account-card" data-testid="participant-accounts-closed"><h2>{copy.comingSoon}</h2><p>{copy.closed}</p><ButtonLink href={`/${locale}/participate`}>{copy.explore}</ButtonLink></section>;
@@ -208,7 +226,7 @@ export function ParticipantAccountForm({ locale, screen, initialState, profileEn
         competitionsAvailable={competitionsAvailable} workshopsAvailable={workshopsAvailable}
         certificatesAvailable={certificatesAvailable} researchJudgingAvailable={researchJudgingAvailable}
         announcements={initialAnnouncements} workshopBookings={initialWorkshopBookings} pending={draft.pending}
-        signOutDisabled={disabled} onSignOut={() => void handleAction("logout", false)} /> : availability === "ready" ? <p data-testid="participant-signin-required">{copy.needSignIn}</p> : null}
+        signOutDisabled={signOutDisabled} onSignOut={() => void handleAction("logout", false)} /> : availability === "ready" && !signingOut ? <p data-testid="participant-signin-required">{copy.needSignIn}</p> : null}
     </> : signedIn ? <ButtonLink className="participant-account-primary-next" href={`/${locale}/${registrationAvailable ? "registration" : "my-msrc"}`}>{registrationAvailable ? myRegistrationCopy[locale].title : copy.links["my-msrc"]}</ButtonLink>
       : screen === "sign-up" && !notice ? <p className="participant-account-notice" data-testid="participant-privacy-pending">{copy.privacyPending}</p> : complete ? signedInAfterVerify ? <ButtonLink href={`/${locale}/my-msrc`} data-testid="participant-continue-profile">{copy.links["my-msrc"]}</ButtonLink> : signingIn ? null : <ButtonLink href={`/${locale}/sign-in`}>{copy.signIn}</ButtonLink> : <>
       {screen === "sign-up" && notice ? <aside className="participant-account-notice" aria-labelledby="participant-privacy-title">

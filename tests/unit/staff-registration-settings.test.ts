@@ -59,7 +59,7 @@ beforeEach(() => {
   backend = { rpc: vi.fn(async (name) => {
     if (name === "msrc_staff_status") return { enabled: true, emailDailyLimit: 40 };
     if (name === "msrc_staff_form_claim") return { state: "claimed" };
-    if (name === "msrc_session_context") return persisted();
+    if (name === "msrc_session_context" || name === "msrc_session_activity") return persisted();
     if (name === "msrc_staff_profile") return { schemaVersion: 1, actorId, name: "Synthetic Staff", roles, session: persisted() };
     return replies[name] ?? null;
   }), identity: vi.fn(async () => actorId), refresh: vi.fn(async () => native), logout: vi.fn(async () => true) } as unknown as StaffBackend;
@@ -67,8 +67,9 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("closed Super Admin registration settings", () => {
-  it("reads settings and history through a native authorized session, stripping database metadata", async () => {
-    const response = await handle(request("GET", "?area=registration-settings&q="));
+  it.each(["GET", "POST"] as const)("%s reads settings and history through a native authorized session, stripping database metadata", async (method) => {
+    const response = await handle(method === "GET" ? request("GET", "?area=registration-settings&q=")
+      : request("POST", "", { action: "activity", area: "registration-settings" }));
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({ state: "authenticated", registrationSettings: { settings, settingsComplete: true, participantAccountsReady: false, history: [history] } });
     expect(backend.rpc).toHaveBeenCalledWith("msrc_staff_registration_settings", { edition_key: config.editionKey }, accessToken);

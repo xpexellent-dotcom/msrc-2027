@@ -1,6 +1,6 @@
 "use client";
 
-import type { ParticipantField, ParticipantPayload, ParticipantResponse, ParticipantState } from "./contracts";
+import { participantAccountViewHeader, type ParticipantField, type ParticipantPayload, type ParticipantResponse, type ParticipantState } from "./contracts";
 import { clearProfileEditorDraft } from "./profile-editor-draft";
 
 const responseStates = new Set<ParticipantState>(["closed", "ready", "accepted", "authenticated", "verified", "password_reset", "signed_out", "invalid_input", "invalid_credentials", "invalid_code", "limited", "unavailable"]);
@@ -32,11 +32,12 @@ function parseResponse(value: unknown): ParticipantResponse {
   return response;
 }
 
-async function requestResponse(payload?: ParticipantPayload, signal?: AbortSignal): Promise<ParticipantResponse> {
+async function requestResponse(payload?: ParticipantPayload, signal?: AbortSignal, view?: "header"): Promise<ParticipantResponse> {
   try {
     const response = await fetch("/api/participant-accounts", {
       method: payload ? "POST" : "GET", credentials: "same-origin", cache: "no-store", signal,
-      ...(payload ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) } : {}),
+      ...(payload ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }
+        : view ? { headers: { [participantAccountViewHeader]: view } } : {}),
     });
     if (!response.headers.get("content-type")?.includes("application/json")) return { state: "unavailable" };
     return parseResponse(await response.json());
@@ -60,13 +61,15 @@ const SIGNUP_PENDING_KEY = "msrc-signup-pending";
 export function hasSignupPending() { try { return window.localStorage.getItem(SIGNUP_PENDING_KEY) === "1"; } catch { return false; } }
 function setSignupPending(pending: boolean) { try { if (pending) window.localStorage.setItem(SIGNUP_PENDING_KEY, "1"); else window.localStorage.removeItem(SIGNUP_PENDING_KEY); } catch { /* Storage is optional. */ } }
 
-export async function requestAccount(payload?: ParticipantPayload, signal?: AbortSignal) {
-  const response = await requestResponse(payload, signal);
+export async function requestAccount(payload?: ParticipantPayload, signal?: AbortSignal, view?: "header") {
+  const response = await requestResponse(payload, signal, view);
+  const receivedAt = Date.now();
+  if (signal?.aborted) return { response, receivedAt };
   // Keep the header hint in step with what the server reports about this session.
   if (payload?.action === "signup" && response.state === "accepted") setSignupPending(true);
   if (response.state === "verified" || response.profile) setSignupPending(false);
   if (response.profile) setParticipantHint(true);
   else if (response.state === "signed_out" || response.state === "closed" || (!payload && response.state === "ready")) setParticipantHint(false);
-  return { response, receivedAt: Date.now() };
+  return { response, receivedAt };
 }
 

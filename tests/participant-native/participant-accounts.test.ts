@@ -4,9 +4,9 @@ import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { createParticipantBackend } from "@/features/participant-accounts/backend.server";
 import type { ParticipantConfig } from "@/features/participant-accounts/config.server";
 import type { ParticipantPayload, ParticipantResponse } from "@/features/participant-accounts/contracts";
-import { createParticipantHandler } from "@/features/participant-accounts/handler.server";
+import { createParticipantHandler, observeParticipantPage } from "@/features/participant-accounts/handler.server";
 import { participantNotice } from "@/features/participant-accounts/privacy.server";
-import { participantHash } from "@/features/participant-accounts/security.server";
+import { participantFormToken, participantHash } from "@/features/participant-accounts/security.server";
 import { boundary, check, client, nativeAdmin, nativeCredentials, query } from "./setup";
 
 // Genuine native Admin/password/refresh APIs + private SQL on the dedicated
@@ -557,7 +557,7 @@ describe.skipIf(!ci)("BL-AUTH-02/03/04/06/08 genuine participant native boundari
       && await profile(refreshed.data.session) === null, "refreshed native token cannot extend dashboard admission");
   });
 
-  it("runs the application signup, verification, login and reset handler through genuine Auth and RPCs", async () => {
+  it("runs the application signup, verification, login, reset and sign-out handler through genuine Auth and RPCs", async () => {
     const shortPassword = randomBytes(3).toString("hex") + "🙂أب";
     const minimumPassword = randomBytes(3).toString("hex") + "🙂أبج";
     check(Array.from(shortPassword).length === 9 && Array.from(minimumPassword).length === 10,
@@ -704,7 +704,23 @@ describe.skipIf(!ci)("BL-AUTH-02/03/04/06/08 genuine participant native boundari
         requestId: boundaryForgot.body.requestId, code: boundaryMail.code });
       check(boundaryReset.response.status === 200 && boundaryReset.body.state === "password_reset", "72-byte reset remains compatible with genuine native Auth");
       const boundaryLogin = await post({ action: "signin", email: value.email, password: boundaryPassword });
-      check(boundaryLogin.response.status === 200 && boundaryLogin.body.state === "authenticated", "provider-boundary password authenticates through the handler");
+      const boundaryCookie = boundaryLogin.response.headers.get("set-cookie")?.split(";")[0];
+      check(boundaryLogin.response.status === 200 && boundaryLogin.body.state === "authenticated" && boundaryCookie,
+        "provider-boundary password authenticates through the handler");
+      const accountPage = await observeParticipantPage(new Request(origin, { headers: { Cookie: boundaryCookie } }), config,
+        { backend: () => backend, now: () => clock });
+      check(accountPage.enabled && accountPage.profile?.name === value.name, "server rendering observes the genuine admitted password session");
+      const logoutToken = participantFormToken(config, origin, clock);
+      const logoutRequest = () => new Request(origin + "/api/participant-accounts", { method: "POST",
+        headers: { Origin: origin, "Content-Type": "application/json", "Sec-Fetch-Site": "same-origin", Cookie: boundaryCookie },
+        body: JSON.stringify({ action: "logout", formToken: logoutToken }) });
+      const signedOut = await handle(logoutRequest());
+      check(signedOut.status === 200 && (await signedOut.json() as ParticipantResponse).state === "signed_out"
+        && signedOut.headers.get("set-cookie")?.includes("Max-Age=0"),
+      "a newly issued server-rendered token signs out immediately and clears the cookie");
+      check((await handle(logoutRequest())).status === 429, "fresh sign-out still enforces the genuine database one-use nonce");
+      const revoked = await get(boundaryCookie);
+      check(revoked.body.state === "ready" && revoked.body.profile === null, "the old cookie cannot restore the dashboard after logout");
       const legacyLogin = await post({ action: "signin", email: legacy.email, password: shortPassword });
       check(legacyLogin.response.status === 200 && legacyLogin.body.state === "authenticated"
         && legacyLogin.body.profile?.name === legacy.name, "existing shorter native password remains admissible at sign-in");

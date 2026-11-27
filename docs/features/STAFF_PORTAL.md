@@ -100,6 +100,49 @@ Super Admin minimum. Expired interrupted operations receive a terminal audit whe
 the other administrator authorizes a retry. Provider failures preserve an audit result. Audit projections exclude
 passwords, native tokens, invitation digests, codes and provider payloads.
 
+## 27 November 2026 — Staff navigation
+
+A verified session can start a staff console page with one same-origin
+activity POST. Ten sections also return their first authorized read in that
+response. The regular GET and the activity POST use the same role, assurance
+and data projection for these sections. Searches, filters, exports, request
+details and separately authorized panels use their existing routes.
+
+The private page render reuses its database readiness result for session
+observation and verifies the session before issuing a fresh one-use form token. The POST checks readiness,
+current session and assurance, origin, token, rate limits and applicable
+roles. Unavailable or already used tokens recover through the existing
+session flow. Only deliberate navigation or user input can renew the idle
+timer. Staff pages and responses use no-store.
+
+Competition and Research Judging staff workspaces request their entry list
+and settings together. Each database read still uses its own permission and
+projection. If the settings read fails after a successful list read, the
+workspace can still show the list. Reviewer and judge queues use their
+existing dedicated reads.
+
+The organizer browser suite opens People and roles and Participants from the
+desktop sidebar or the narrow-screen Work areas menu in both locales. It waits
+for the overview statistics and then verifies one protected request per destination.
+
+Requirements AUTH-04/05, ROL-01/03–06/10/12, SEC-01/02/06, LOC-01/03, NFR-02.
+
+## 27 November 2026 — People and roles navigation
+
+A page render that verifies a Super Admin issues a fresh one-use form token
+for People and roles. The browser sends one same-origin activity request to
+record real navigation and load staff members and invitations. The API verifies
+the token, session, assurance, expiry, and current roles. It calls the same
+audited database function used by People and roles search. Private responses
+use no-store.
+
+If the page token is absent, expired or already used, the browser can recover
+through the existing session and verification flow. Only deliberate activity
+extends the idle timer under ENG-044. The first measurement used People and
+roles before the shared implementation above.
+
+Requirements AUTH-04/05, ROL-01/10/12, SEC-01/02/06, LOC-01/03 and NFR-02.
+
 ## 16 October hardening — local implementation, pending release
 
 [ENG-044](../DECISIONS.md#eng-044--staff-sessions-and-shared-network-hardening-16-october-2026)

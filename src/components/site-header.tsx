@@ -51,9 +51,10 @@ const headerCopy = {
 
 export function SiteHeader({ locale }: { locale: Locale }) {
   const copy = headerCopy[locale];
-  const action = headerAction(locale, useParticipantName(), copy.action);
-  const hydrated = useSyncExternalStore(subscribeHydration, clientSnapshot, serverSnapshot);
   const pathname = usePathname();
+  const profileDashboard = pathname === `/${locale}/my-msrc`;
+  const action = headerAction(locale, useParticipantName(profileDashboard), copy.action);
+  const hydrated = useSyncExternalStore(subscribeHydration, clientSnapshot, serverSnapshot);
   const isHome = pathname === `/${locale}`;
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuClosing, setMenuClosing] = useState(false);
@@ -279,7 +280,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
                     <svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="m4 6 4 4 4-4" /></svg>
                   </button>
                   <div className="header-dropdown" id={dropdownId} inert={!open}>
-                    {link.children.map((child) => <Link key={child.href} href={child.href} onClick={onNavigate}>{child.label}<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 19 19 5M5 5h14v14" /></svg></Link>)}
+                    {link.children.map((child) => <Link key={child.href} href={child.href} prefetch={open ? undefined : false} onClick={onNavigate}>{child.label}<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 19 19 5M5 5h14v14" /></svg></Link>)}
                   </div>
                 </> : null}
               </div>;
